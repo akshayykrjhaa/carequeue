@@ -16,15 +16,8 @@ data:
   APP_VERSION: v1
   APP_COLOR: blue
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: carequeue-secret
-  namespace: carequeue
-type: Opaque
-stringData:
-  DB_PASSWORD: careqpass
----
+# The Secret "carequeue-secret" (DB_PASSWORD) is created directly in the
+# cluster with kubectl and is never stored in Git.
 apiVersion: v1
 kind: ConfigMap
 metadata:
