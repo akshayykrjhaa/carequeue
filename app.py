@@ -124,7 +124,7 @@ footer{margin:22px 0 36px;font-size:.82rem;color:var(--muted);display:flex;gap:1
 </style></head>
 <body>
 <header><div class="wrap">
-  <div class="brand"><b>CareQueue</b><span>City Hospital outpatient department</span></div>
+  <div class="brand"><b>CareQueue</b><span>City Hospital outpatient department · deployed by Jenkins</span></div>
   <span class="pill"><i></i>{{ color }} {{ version }}</span>
 </div></header>
 <main class="wrap">
