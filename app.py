@@ -17,7 +17,7 @@ SEED = ["Ravi M.", "Asha K.", "Imran S.", "Meera P.", "John D.", "Priya R.", "Ka
 
 def connect():
     return psycopg2.connect(host=os.getenv("DB_HOST", "db"), dbname=os.getenv("DB_NAME", "careq"),
-                            user=os.getenv("DB_USER", "careq"), password=os.getenv("DB_PASSWORD", "careqpass"))
+                            user=os.getenv("DB_USER", "careq"), password=os.environ["DB_PASSWORD"])
 
 
 def query(sql, params=(), fetch=False):

@@ -16,7 +16,7 @@ services:
       DB_HOST: db
       DB_NAME: careq
       DB_USER: careq
-      DB_PASSWORD: careqpass
+      DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: cache
       APP_VERSION: v1
       APP_COLOR: blue
@@ -29,7 +29,7 @@ services:
     environment:
       POSTGRES_DB: careq
       POSTGRES_USER: careq
-      POSTGRES_PASSWORD: careqpass
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - dbdata:/var/lib/postgresql/data
   cache:
