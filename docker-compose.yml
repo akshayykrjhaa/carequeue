@@ -1,0 +1,35 @@
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web
+  web:
+    build: .
+    image: carequeue-web:v1
+    environment:
+      DB_HOST: db
+      DB_NAME: careq
+      DB_USER: careq
+      DB_PASSWORD: careqpass
+      REDIS_HOST: cache
+      APP_VERSION: v1
+      APP_COLOR: blue
+    depends_on:
+      - db
+      - cache
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: careq
+      POSTGRES_USER: careq
+      POSTGRES_PASSWORD: careqpass
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+  cache:
+    image: redis:7-alpine
+volumes:
+  dbdata:
