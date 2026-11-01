@@ -19,9 +19,36 @@ pipeline {
             }
         }
 
+        stage('Secret scan') {
+            steps {
+                sh '''
+                    docker run --rm --user "$(id -u):$(id -g)" -v "$WORKSPACE":/repo zricethezav/gitleaks:latest git -v /repo
+                '''
+            }
+        }
+
+        stage('Code scan (SAST)') {
+            steps {
+                sh '''
+                    docker run --rm -v "$WORKSPACE":/src -w /src python:3.12-slim sh -c "pip install -q bandit && bandit -r app.py -ll"
+                '''
+            }
+        }
+
         stage('Build image') {
             steps {
-                sh 'docker build -t $IMAGE:$TAG -t $IMAGE:latest .'
+                sh 'docker build --pull -t $IMAGE:$TAG -t $IMAGE:latest .'
+            }
+        }
+
+        stage('Image scan') {
+            steps {
+                sh '''
+                    echo "== Report: all HIGH and CRITICAL findings =="
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache aquasec/trivy:latest image --severity HIGH,CRITICAL --exit-code 0 $IMAGE:$TAG
+                    echo "== Gate: fail on fixable CRITICAL findings =="
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache aquasec/trivy:latest image --severity CRITICAL --ignore-unfixed --exit-code 1 $IMAGE:$TAG
+                '''
             }
         }
 
@@ -136,7 +163,7 @@ pipeline {
             echo "Switch not approved. Users stay on ${env.LIVE}. ${env.IDLE} keeps the new version for more testing."
         }
         failure {
-            echo 'Pipeline failed. Open the red stage to see why.'
+            echo 'Pipeline failed. A security gate or check stopped the release. Open the red stage to see why.'
         }
     }
 }
