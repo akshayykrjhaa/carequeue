@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: carequeue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: akki613/carequeue:v1
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: carequeue-config
+            - secretRef:
+                name: carequeue-secret
+          readinessProbe:
+            httpGet: {path: /health, port: 5000}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health, port: 5000}
+            initialDelaySeconds: 60
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: carequeue
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 5000

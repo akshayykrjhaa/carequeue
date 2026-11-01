@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: carequeue
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: carequeue-config
+  namespace: carequeue
+data:
+  DB_HOST: db
+  DB_NAME: careq
+  DB_USER: careq
+  REDIS_HOST: cache
+  APP_VERSION: v1
+  APP_COLOR: blue
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: carequeue-secret
+  namespace: carequeue
+type: Opaque
+stringData:
+  DB_PASSWORD: careqpass
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: carequeue
+data:
+  default.conf: |
+    server {
+        listen 80;
+        location / {
+            proxy_pass http://web:5000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
