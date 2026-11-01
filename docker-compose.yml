@@ -1,5 +1,6 @@
 services:
   nginx:
+    restart: unless-stopped
     image: nginx:1.27-alpine
     ports:
       - "80:80"
@@ -8,6 +9,7 @@ services:
     depends_on:
       - web
   web:
+    restart: unless-stopped
     build: .
     image: carequeue-web:v1
     environment:
@@ -22,6 +24,7 @@ services:
       - db
       - cache
   db:
+    restart: unless-stopped
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: careq
@@ -30,6 +33,7 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
   cache:
+    restart: unless-stopped
     image: redis:7-alpine
 volumes:
   dbdata:
