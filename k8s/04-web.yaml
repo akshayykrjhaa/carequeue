@@ -1,21 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web
+  name: web-blue
   namespace: carequeue
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: web
+      track: blue
   template:
     metadata:
       labels:
         app: web
+        track: blue
     spec:
       containers:
         - name: web
-          image: akki613/carequeue:v1
+          image: akki613/carequeue:5
           ports:
             - containerPort: 5000
           envFrom:
@@ -23,6 +25,52 @@ spec:
                 name: carequeue-config
             - secretRef:
                 name: carequeue-secret
+          env:
+            - name: APP_COLOR
+              value: blue
+            - name: APP_VERSION
+              value: v1.5
+          readinessProbe:
+            httpGet: {path: /health, port: 5000}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health, port: 5000}
+            initialDelaySeconds: 60
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-green
+  namespace: carequeue
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: web
+      track: green
+  template:
+    metadata:
+      labels:
+        app: web
+        track: green
+    spec:
+      containers:
+        - name: web
+          image: akki613/carequeue:5
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: carequeue-config
+            - secretRef:
+                name: carequeue-secret
+          env:
+            - name: APP_COLOR
+              value: green
+            - name: APP_VERSION
+              value: v1.5
           readinessProbe:
             httpGet: {path: /health, port: 5000}
             initialDelaySeconds: 5
@@ -40,5 +88,6 @@ metadata:
 spec:
   selector:
     app: web
+    track: blue
   ports:
     - port: 5000
