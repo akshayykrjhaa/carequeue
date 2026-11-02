@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard
+  namespace: monitoring
+data:
+  carequeue.json: |
+    {
+      "uid": "carequeue",
+      "title": "CareQueue Monitoring",
+      "tags": ["carequeue"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "refresh": "10s",
+      "time": {"from": "now-30m", "to": "now"},
+      "panels": [
+        {"id": 1, "type": "stat", "title": "Healthy app pods",
+         "gridPos": {"h": 5, "w": 6, "x": 0, "y": 0},
+         "datasource": {"type": "prometheus", "uid": "prometheus"},
+         "targets": [{"refId": "A", "expr": "sum(up{job=\"carequeue-web\"})"}]},
+        {"id": 2, "type": "stat", "title": "Requests per second",
+         "gridPos": {"h": 5, "w": 6, "x": 6, "y": 0},
+         "datasource": {"type": "prometheus", "uid": "prometheus"},
+         "fieldConfig": {"defaults": {"unit": "reqps", "decimals": 2}, "overrides": []},
+         "targets": [{"refId": "A", "expr": "sum(rate(flask_http_request_total[1m]))"}]},
+        {"id": 3, "type": "stat", "title": "Error rate (5xx)",
+         "gridPos": {"h": 5, "w": 6, "x": 12, "y": 0},
+         "datasource": {"type": "prometheus", "uid": "prometheus"},
+         "fieldConfig": {"defaults": {"unit": "percentunit", "decimals": 1,
+           "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 0.05}]}}, "overrides": []},
+         "targets": [{"refId": "A", "expr": "(sum(rate(flask_http_request_total{status=~\"5..\"}[5m])) or vector(0)) / clamp_min(sum(rate(flask_http_request_total[5m])), 0.001)"}]},
+        {"id": 4, "type": "stat", "title": "Response time (95th percentile)",
+         "gridPos": {"h": 5, "w": 6, "x": 18, "y": 0},
+         "datasource": {"type": "prometheus", "uid": "prometheus"},
+         "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}, "overrides": []},
+         "targets": [{"refId": "A", "expr": "histogram_quantile(0.95, sum by (le) (rate(flask_http_request_duration_seconds_bucket[5m])))"}]},
+        {"id": 5, "type": "timeseries", "title": "Requests per second by colour (blue / green)",
+         "gridPos": {"h": 9, "w": 12, "x": 0, "y": 5},
+         "datasource": {"type": "prometheus", "uid": "prometheus"},
+         "fieldConfig": {"defaults": {"unit": "reqps"}, "overrides": [
+           {"matcher": {"id": "byName", "options": "blue"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "blue"}}]},
+           {"matcher": {"id": "byName", "options": "green"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}]}]},
+         "targets": [{"refId": "A", "expr": "sum by (track) (rate(flask_http_request_total[1m]))", "legendFormat": "{{track}}"}]},
+        {"id": 6, "type": "timeseries", "title": "Requests per second by status code",
+         "gridPos": {"h": 9, "w": 12, "x": 12, "y": 5},
+         "datasource": {"type": "prometheus", "uid": "prometheus"},
+         "fieldConfig": {"defaults": {"unit": "reqps"}, "overrides": []},
+         "targets": [{"refId": "A", "expr": "sum by (status) (rate(flask_http_request_total[1m]))", "legendFormat": "{{status}}"}]},
+        {"id": 7, "type": "timeseries", "title": "Response time (95th percentile) by colour",
+         "gridPos": {"h": 9, "w": 12, "x": 0, "y": 14},
+         "datasource": {"type": "prometheus", "uid": "prometheus"},
+         "fieldConfig": {"defaults": {"unit": "s"}, "overrides": [
+           {"matcher": {"id": "byName", "options": "blue"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "blue"}}]},
+           {"matcher": {"id": "byName", "options": "green"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}]}]},
+         "targets": [{"refId": "A", "expr": "histogram_quantile(0.95, sum by (le, track) (rate(flask_http_request_duration_seconds_bucket[5m])))", "legendFormat": "{{track}}"}]},
+        {"id": 8, "type": "table", "title": "Running releases (one row per pod)",
+         "gridPos": {"h": 9, "w": 12, "x": 12, "y": 14},
+         "datasource": {"type": "prometheus", "uid": "prometheus"},
+         "targets": [{"refId": "A", "expr": "carequeue_app_info", "format": "table", "instant": true}]}
+      ]
+    }
