@@ -38,6 +38,10 @@ data:
         add_header Cache-Control "no-store" always;
         add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; form-action 'self'; frame-ancestors 'none'" always;
 
+        location /metrics {
+            return 404;
+        }
+
         location / {
             limit_req zone=perip burst=20 nodelay;
             proxy_pass http://web:5000;

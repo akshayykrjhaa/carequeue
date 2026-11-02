@@ -1,10 +1,13 @@
 import os, time
 import psycopg2, redis
 from flask import Flask, request, jsonify, redirect, render_template_string, url_for
+from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
 VERSION = os.getenv("APP_VERSION", "v1")
 COLOR = os.getenv("APP_COLOR", "blue")
+metrics.info("carequeue_app_info", "CareQueue release", version=VERSION, color=COLOR)
 cache = redis.Redis(host=os.getenv("REDIS_HOST", "cache"), port=6379, decode_responses=True)
 
 DEPTS = [("A", "General Medicine", "Room 1"), ("P", "Paediatrics", "Room 2"), ("O", "Orthopaedics", "Room 3"),
